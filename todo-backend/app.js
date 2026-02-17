@@ -13,8 +13,4 @@ app.use(express.json());
 
 app.use("/api/todos", todoRoutes);
 
-app.get("/", (req, res) => {
-    res.send("Todo API Running 🚀");
-});
-
 module.exports = app;

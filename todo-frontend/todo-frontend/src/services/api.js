@@ -1,4 +1,5 @@
-const BASE_URL = "http://localhost:5000/api/todos";
+const BASE_URL = import.meta.env.TODO_API_URL;
+
 
 export const fetchTodos = async (page = 1, search = "", filter = "ALL") => {
     //console.log(search, filter)
