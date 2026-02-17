@@ -232,3 +232,43 @@ exports.deleteTodo = async (req, res) => {
         });
     }
 };
+
+/**
+ * Bulk Delete Todos
+ */
+exports.bulkDeleteTodos = async (req, res) => {
+    console.log("Request Body: ", req.body)
+    try {
+        const { ids } = req.body;
+        console.log("ids", ids);
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No IDs provided",
+            });
+        }
+        console.log(ids);
+
+        await Todo.destroy({
+        where: {
+            id: {
+                [Op.in]: ids
+            }
+        }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Selected todos deleted successfully",
+        });
+
+    } catch (error) {
+        console.error("Bulk delete error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Bulk delete failed",
+            error: error.message,
+        });
+    }
+};
+

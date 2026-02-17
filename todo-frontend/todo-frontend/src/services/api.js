@@ -1,7 +1,7 @@
 const BASE_URL = "http://localhost:5000/api/todos";
 
 export const fetchTodos = async (page = 1, search = "", filter = "ALL") => {
-    console.log(search, filter)
+    //console.log(search, filter)
     const res = await fetch(`${BASE_URL}?page=${page}&limit=5&search=${search}&filter=${filter}`);
     const data = await res.json();
     return data;
@@ -39,3 +39,17 @@ export const deleteTodoAPI = async (id) => {
         method: "DELETE",
     });
 };
+
+export const bulkDeleteAPI = async (ids) => {
+    try {
+    await fetch(`${BASE_URL}/bulk`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+    });
+    } catch (error) {
+        console.log("Error: ", error)
+    }
+
+};
+

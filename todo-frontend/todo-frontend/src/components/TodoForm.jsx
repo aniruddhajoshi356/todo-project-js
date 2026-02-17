@@ -1,12 +1,19 @@
 import { useState } from "react";
 
-function TodoForm({ handleAddTodo }) {
+function TodoForm({ handleAddTodo, setToast }) {
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-
     const handleSubmit = (e) => {
         e.preventDefault();
+        if(!title || title.trim() === ""){
+            setToast({ message: "Please enter a task title", type: "error" });
+            return;
+        }
+        if(!description || description.trim() === ""){
+            setToast({ message: "Please enter a task description", type: "error" });
+            return;
+        }
         handleAddTodo(title, description);
         setTitle("");
         setDescription("");
