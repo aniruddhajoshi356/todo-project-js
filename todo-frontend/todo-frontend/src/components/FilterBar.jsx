@@ -7,6 +7,7 @@ function FilterBar({
     searchTerm,
     setSearchTerm
 }) {
+    console.log(todos)
     const isAllSelected =
         todos.length > 0 &&
         selectedIds.length === todos.length;

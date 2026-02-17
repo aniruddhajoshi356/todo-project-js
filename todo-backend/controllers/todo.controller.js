@@ -1,4 +1,5 @@
 const Todo = require("../models/todo.model");
+const {Op} = require("sequelize");
 
 const ALLOWED_STATUS = ["in_progress", "on-hold", "completed"];
 
@@ -60,15 +61,39 @@ exports.createTodo = async (req, res) => {
  */
 exports.getAllTodos = async (req, res) => {
     try {
-        const todos = await Todo.findAll();
+        //const todos = await Todo.findAll();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const search = req.query.search || "";
+        const filter = req.query.filter || "ALL";
 
+        const offset = (page - 1) * limit;
+
+        const filters  = {}
+        if (filter !== "ALL") {
+            filters.status = filter;
+        }
+        if (search) {
+            filters.title = {
+                [Op.iLike]: `%${search}%`
+            };
+        }
+
+        const { count, rows } = await Todo.findAndCountAll({
+            where  :filters,
+            limit,
+            offset,
+            order: [["createdAt", "DESC"]],
+        });
         return res.status(200).json({
-        success: true,
-        count: todos.length,
-        data: todos,
+            totalItems: count,
+            totalPages: Math.ceil(count / limit),
+            currentPage: page,
+            todos: rows,
         });
 
     } catch (error) {
+        console.error(error)
         return res.status(500).json({
         success: false,
         message: "Server Error",
@@ -151,11 +176,35 @@ exports.updateTodoStatus = async (req, res) => {
     }
     };
 
+/**
+ * Update Todo Title
+ */
+exports.updateTodo = async (req, res) => {
+    try{
+        const { id } = req.params;
+        const { title } = req.body;
 
-    /**
-     * Delete Todo
-     */
-    exports.deleteTodo = async (req, res) => {
+        const todo = await Todo.findByPk(id);
+
+        if (!todo) return res.status(404).json({ message: "Not found" });
+
+        todo.title = title;
+        await todo.save();
+
+        res.json({ success: true, data: todo });
+    } catch (error) {
+        return res.status(500).json({
+        success: false,
+        message: "Server Error",
+        error: error.message,
+        });
+    }
+};
+
+/**
+ * Delete Todo
+ */
+exports.deleteTodo = async (req, res) => {
     try {
         const { id } = req.params;
 

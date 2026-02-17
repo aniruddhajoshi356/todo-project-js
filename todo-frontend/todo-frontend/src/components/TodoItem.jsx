@@ -5,13 +5,13 @@ function TodoItem({ todo, key, handleEdit, handleDelete, selectedIds, toggleSele
         : todo.status === "on-hold"
         ? "bg-yellow-100 text-yellow-700"
         : "bg-blue-100 text-blue-700";
-    const onEditClick = () => {
-        const newTitle = prompt("Edit your task:", todo.title);
+    // const onEditClick = () => {
+    //     const newTitle = prompt("Edit your task:", todo.title);
 
-        if (newTitle && newTitle.trim() !== "") {
-        handleEdit(todo.id, newTitle.trim());
-        }
-    };
+    //     if (newTitle && newTitle.trim() !== "") {
+    //     handleEdit(todo.id, newTitle.trim());
+    //     }
+    // };
     return (
         <div className="flex items-center justify-between border-b py-4">
         
@@ -33,18 +33,18 @@ function TodoItem({ todo, key, handleEdit, handleDelete, selectedIds, toggleSele
                     handleStatusChange(todo.id, e.target.value)
                 }
                 >
-                    <option value="in_progress">in_progress</option>
-                    <option value="completed">completed</option>
-                    <option value="on-hold">on-hold</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="on-hold">On Hold</option>
                 </select>
 
                 <button
-                    onClick={onEditClick}
-                    className="text-black hover:text-red-600"
+                    onClick={() => handleEdit(todo)}
+                    className=""
                 >✏️</button>
                 <button
                     onClick={() => handleDelete(todo)}
-                    className="text-black hover:text-red-600"
+                    className=""
                 >🗑️</button>
             </div>
                 {/* {console.log(todo)} */}

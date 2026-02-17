@@ -9,7 +9,7 @@ function TodoList({
     handleStatusChange
 }) {
     return (
-        <div>
+        <div className="h-100 w-180 overflow-y-auto scroll-right">
             {todos.length === 0 ? (
                 <p className="text-center text-gray-500 mt-4">
                     No todos found
