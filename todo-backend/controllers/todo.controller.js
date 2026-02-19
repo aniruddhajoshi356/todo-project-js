@@ -1,5 +1,6 @@
-const Todo = require("../models/todo.model");
-const {Op} = require("sequelize");
+const { Todo } = require("../models");
+const { Category } = require("../models");
+const { Op } = require("sequelize");
 
 const ALLOWED_STATUS = ["in_progress", "on-hold", "completed"];
 
@@ -7,268 +8,411 @@ const ALLOWED_STATUS = ["in_progress", "on-hold", "completed"];
  * Create Todo
  */
 exports.createTodo = async (req, res) => {
-    try {
-        const { title, description, status } = req.body;
+  try {
+    const { title, description, status, categoryId } = req.body;
 
-        // Title validation
-        if (!title || !title.trim()) {
-            return res.status(400).json({
-                success: false,
-                message: "Title is required",
-            });
-        }
-
-        // Description validation
-        if (!description || !description.trim()) {
-            return res.status(400).json({
-                success: false,
-                message: "Description is required",
-            });
-        }
-
-        // Status validation (optional but controlled)
-        if (status && !ALLOWED_STATUS.includes(status)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid status value",
-            });
-        }
-
-        const newTodo = await Todo.create({
-            title: title,
-            description: description,
-            status: status || "in_progress",
-        });
-
-        return res.status(201).json({
-            success: true,
-            data: newTodo,
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Server Error",
-            error: error.message,
-        });
+    // Title validation
+    if (!title || !title.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Title is required",
+      });
     }
+
+    // Description validation
+    if (!description || !description.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Description is required",
+      });
+    }
+
+    // Status validation (optional but controlled)
+    if (status && !ALLOWED_STATUS.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status value",
+      });
+    }
+
+    const newTodo = await Todo.create({
+      title: title,
+      description: description,
+      status: status || "in_progress",
+      categoryId: categoryId,
+      userId: req.user.id,
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: newTodo,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
 };
 
+/**
+ * Create Category
+ */
+exports.createCategory = async (req, res) => {
+  try {
+    const { name } = req.body;
 
+    // Name validation
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Name is required",
+      });
+    }
+    const existing = await Category.findOne({
+      where: {
+        name,
+        userId: req.user.id,
+      },
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: "Category already exists",
+      });
+    }
+
+    const newCategory = await Category.create({
+      name: name,
+      userId: req.user.id,
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: newCategory,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
 
 /**
  * Get All Todos
  */
 exports.getAllTodos = async (req, res) => {
-    try {
-        //const todos = await Todo.findAll();
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 5;
-        const search = req.query.search || "";
-        const filter = req.query.filter || "ALL";
+  try {
+    //const todos = await Todo.findAll();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const search = req.query.search || "";
+    const filter = req.query.filter || "ALL";
 
-        const offset = (page - 1) * limit;
+    const offset = (page - 1) * limit;
 
-        const filters  = {}
-        if (filter !== "ALL") {
-            filters.status = filter;
-        }
-        if (search) {
-            filters.title = {
-                [Op.iLike]: `%${search}%`
-            };
-        }
-
-        const { count, rows } = await Todo.findAndCountAll({
-            where  :filters,
-            limit,
-            offset,
-            order: [["createdAt", "DESC"]],
-        });
-        return res.status(200).json({
-            totalItems: count,
-            totalPages: Math.ceil(count / limit),
-            currentPage: page,
-            todos: rows,
-        });
-
-    } catch (error) {
-        console.error(error)
-        return res.status(500).json({
-        success: false,
-        message: "Server Error",
-        error: error.message,
-        });
+    const filters = { userId: req.user.id };
+    if (filter !== "ALL") {
+      filters.status = filter;
     }
-};
+    if (search) {
+      filters.title = {
+        [Op.iLike]: `%${search}%`,
+      };
+    }
 
+    const { count, rows } = await Todo.findAndCountAll({
+      where: filters,
+      limit,
+      offset,
+      order: [["createdAt", "DESC"]],
+    });
+    return res.status(200).json({
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+      todos: rows,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
 
 /**
  * Get Todo by ID
  */
 exports.getTodoById = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        const todo = await Todo.findByPk(id);
+    const todo = await Todo.findOne({
+      where: {
+        id,
+        userId: req.user.id,
+      },
+    });
 
-        if (!todo) {
-        return res.status(404).json({
-            success: false,
-            message: "Todo not found",
-        });
-        }
-
-        return res.status(200).json({
-        success: true,
-        data: todo,
-        });
-
-    } catch (error) {
-        return res.status(500).json({
+    if (!todo) {
+      //console.log("Todo not found");
+      return res.status(404).json({
         success: false,
-        message: "Server Error",
-        error: error.message,
-        });
+        message: "Todo not found",
+      });
     }
+
+    return res.status(200).json({
+      success: true,
+      data: todo,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
 };
+/**
+ * Get Categories
+ */
+exports.getCategories = async (req, res) => {
+  try {
+    const categories = await Category.findAll();
+    res.status(200).json({
+      success: true,
+      data: categories,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+/**
+ * Get Favorite Todos
+ */
+exports.getFavoriteTodos = async (req, res) => {
+  try {
+    const todos = await Todo.findAll({
+      where: {
+        userId: req.user.id,
+        is_favorite: true,
+      },
+    });
+    return res.status(200).json({
+      success: true,
+      data: todos,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+/**
+ * Update Todo Favorite
+ */
+exports.updateTodoFavorite = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_favorite } = req.body;
 
+    const todo = await Todo.findOne({
+      where: {
+        id,
+        userId: req.user.id,
+      },
+    });
 
+    if (!todo) {
+      return res.status(404).json({
+        success: false,
+        message: "Todo not found",
+      });
+    }
+
+    todo.is_favorite = is_favorite;
+    await todo.save();
+
+    return res.status(200).json({
+      success: true,
+      data: todo,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
 /**
  * Update Todo Status
  */
 exports.updateTodoStatus = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status } = req.body;
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
 
-        if (!ALLOWED_STATUS.includes(status)) {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid status value",
-        });
-        }
-
-        const todo = await Todo.findByPk(id);
-
-        if (!todo) {
-        return res.status(404).json({
-            success: false,
-            message: "Todo not found",
-        });
-        }
-
-        todo.status = status;
-        await todo.save();
-
-        return res.status(200).json({
-        success: true,
-        message: "Status updated successfully",
-        data: todo,
-        });
-
-    } catch (error) {
-        return res.status(500).json({
+    if (!ALLOWED_STATUS.includes(status)) {
+      return res.status(400).json({
         success: false,
-        message: "Server Error",
-        error: error.message,
-        });
+        message: "Invalid status value",
+      });
     }
-    };
+
+    const todo = await Todo.findOne({
+      where: {
+        id,
+        userId: req.user.id,
+      },
+    });
+
+    if (!todo) {
+      return res.status(404).json({
+        success: false,
+        message: "Todo not found",
+      });
+    }
+
+    todo.status = status;
+    await todo.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Status updated successfully",
+      data: todo,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
 
 /**
  * Update Todo Title
  */
 exports.updateTodo = async (req, res) => {
-    try{
-        const { id } = req.params;
-        const { title } = req.body;
+  try {
+    const { id } = req.params;
+    const { title } = req.body;
 
-        const todo = await Todo.findByPk(id);
+    const todo = await Todo.findOne({
+      where: {
+        id,
+        userId: req.user.id,
+      },
+    });
 
-        if (!todo) return res.status(404).json({ message: "Not found" });
+    if (!todo) return res.status(404).json({ message: "Not found" });
 
-        todo.title = title;
-        await todo.save();
+    todo.title = title;
+    await todo.save();
 
-        res.json({ success: true, data: todo });
-    } catch (error) {
-        return res.status(500).json({
-        success: false,
-        message: "Server Error",
-        error: error.message,
-        });
-    }
+    res.json({ success: true, data: todo });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
 };
 
 /**
  * Delete Todo
  */
 exports.deleteTodo = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        const todo = await Todo.findByPk(id);
+    const todo = await Todo.findOne({
+      where: {
+        id,
+        userId: req.user.id,
+      },
+    });
 
-        if (!todo) {
-        return res.status(404).json({
-            success: false,
-            message: "Todo not found",
-        });
-        }
-
-        await todo.destroy();
-
-        return res.status(200).json({
-        success: true,
-        message: "Todo deleted successfully",
-        });
-
-    } catch (error) {
-        return res.status(500).json({
+    if (!todo) {
+      return res.status(404).json({
         success: false,
-        message: "Server Error",
-        error: error.message,
-        });
+        message: "Todo not found",
+      });
     }
+
+    await todo.destroy();
+
+    return res.status(200).json({
+      success: true,
+      message: "Todo deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
 };
 
 /**
  * Bulk Delete Todos
  */
 exports.bulkDeleteTodos = async (req, res) => {
-    console.log("Request Body: ", req.body)
-    try {
-        const { ids } = req.body;
-        console.log("ids", ids);
-        if (!Array.isArray(ids) || ids.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: "No IDs provided",
-            });
-        }
-        console.log(ids);
-
-        await Todo.destroy({
-        where: {
-            id: {
-                [Op.in]: ids
-            }
-        }
-        });
-
-        return res.status(200).json({
-            success: true,
-            message: "Selected todos deleted successfully",
-        });
-
-    } catch (error) {
-        console.error("Bulk delete error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Bulk delete failed",
-            error: error.message,
-        });
+  //console.log("Request Body: ", req.body)
+  try {
+    const { ids } = req.body;
+    //console.log("ids", ids);
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No IDs provided",
+      });
     }
-};
+    //console.log(ids);
 
+    await Todo.destroy({
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+        userId: req.user.id,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Selected todos deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Bulk delete failed",
+      error: error.message,
+    });
+  }
+};

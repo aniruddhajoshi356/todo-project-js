@@ -11,7 +11,7 @@ function Modal({ isOpen, title, children, onConfirm, onCancel }) {
                 </h2>
 
                 {/* Dynamic Content */}
-                <div className="mb-6">
+                <div className="mb-6 text-black">
                     {children}
                 </div>
 
@@ -24,6 +24,7 @@ function Modal({ isOpen, title, children, onConfirm, onCancel }) {
                     </button>
 
                     <button
+                        type="button"
                         onClick={onConfirm}
                         className="px-4 py-2 rounded-lg bg-blue-500 text-white"
                     >
