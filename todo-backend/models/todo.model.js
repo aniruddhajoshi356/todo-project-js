@@ -34,6 +34,26 @@ const Todo = sequelize.define(
         allowNull: false,
         defaultValue: "in_progress",
         },
+        userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: "users",
+            key: "id"
+        },
+        },
+        categoryId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: "categories",
+            key: "id"
+        },
+        },
+        is_favorite: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        },
     },
     {
         tableName: "todos",

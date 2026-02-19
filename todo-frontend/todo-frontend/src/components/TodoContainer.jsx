@@ -11,6 +11,8 @@ import {
   deleteTodoAPI,
   updateTodoAPI,
   bulkDeleteAPI,
+  updateFavoriteAPI,
+  getFavoriteTodosAPI,
 } from "../services/api";
 
 import { useCallback, useEffect, useState } from "react";
@@ -50,6 +52,9 @@ const TodoContainer = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [isFavoriteModalOpen, setIsFavoriteModalOpen] = useState(false);
+  const [favoriteTodos, setFavoriteTodos] = useState([]);
+  
   const [toast, setToast] = useState({
     message: "",
     type: "",
@@ -77,6 +82,17 @@ const TodoContainer = () => {
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
+  
+  const handleOpenFavoriteModal = async () => {
+    try {
+      const data = await getFavoriteTodosAPI();
+      //console.log("User's favs", data);
+      setFavoriteTodos(data.data);
+      setIsFavoriteModalOpen(true);
+    } catch (err) {
+      console.error("Failed to fetch favorites", err);
+    }
+  };
 
   const showToast = (message, type) => {
     setToast({ message, type });
@@ -85,8 +101,8 @@ const TodoContainer = () => {
     }, 3000);
   };
 
-  const handleAddTodo = async (title, description) => {
-    await createTodoAPI(title, description);
+  const handleAddTodo = async (title, description, categoryId) => {
+    await createTodoAPI(title, description, categoryId);
     setCurrentPage(1);
     showToast("Todo created successfully", "success");
     await loadTodos();
@@ -162,14 +178,39 @@ const TodoContainer = () => {
       setSelectedIds(visibleIds);
     }
   };
+  const handleToggleFavorite = async (id, is_favorite) => {
+    await updateFavoriteAPI(id, is_favorite);
+    is_favorite
+      ? showToast("Bookmarked successfully", "success")
+      : showToast("Unbookmarked successfully", "error");
+    await loadTodos();
+  };
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/";
+  };
 
   return (
-    <div className="w-200 h-200 bg-white shadow-lg rounded-3xl p-8 max-h-[80vh]">
+    <div className="w-250 h-250 bg-white shadow-lg rounded-3xl p-8 max-h-[80vh]">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl text-black font-style italic font-bold flex justify-center items-center gap-2">
-          <img src="/download.png" alt="Planora" className="w-10 h-10" /> Planora
-        </h1>
+      <div className="text-center mb-8 mt-8">
+        <div className="flex items-center justify-between bg-blue-100 rounded-full p-2">
+          <button className="bg-blue-100" onClick={handleOpenFavoriteModal}>
+            <i className="fa-solid fa-bookmark"></i>
+          </button>
+          <h1 className="text-3xl text-black font-style italic font-bold flex justify-center self-center ml-4 items-center gap-2">
+            <img src="/download.png" alt="Planora" className="w-10 h-10" />{" "}
+            Planora
+          </h1>
+          <button
+            className="px-4 py-2 rounded-lg font-medium text-white shadow-md transition-all duration-200 mr-4
+              bg-red-500 hover:bg-red-400 hover:shadow-lg active:scale-95"
+            onClick={handleLogout}
+          >
+            Logout <i className="ml-2 fas fa-sign-out-alt"></i>
+          </button>
+        </div>
+
         <p className="text-xl mt-4 text-black">What do you want to do today?</p>
       </div>
       <Toast
@@ -178,8 +219,8 @@ const TodoContainer = () => {
         onClose={() => setToast({ message: "", type: "" })}
       />
 
-      <TodoForm handleAddTodo={handleAddTodo} setToast={setToast} />
-
+      <TodoForm handleAddTodo={handleAddTodo} setToast={setToast}/>
+      
       <FilterBar
         filter={filter}
         setFilter={setFilter}
@@ -188,6 +229,7 @@ const TodoContainer = () => {
         handleSelectAll={handleSelectAll}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
+        setToast={setToast}
       />
 
       <TodoList
@@ -198,6 +240,7 @@ const TodoContainer = () => {
         selectedIds={selectedIds}
         handleSelectAll={handleSelectAll}
         handleStatusChange={handleStatusChange}
+        handleToggleFavorite={handleToggleFavorite}
       />
 
       <Modal
@@ -220,6 +263,7 @@ const TodoContainer = () => {
           className="w-full text-black border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
       </Modal>
+
       <div className="flex justify-between">
         {/* <button
           onClick={openBulkDeleteModal}
@@ -254,6 +298,24 @@ const TodoContainer = () => {
             <strong>{selectedIds.length}</strong> selected{" "}
             {selectedIds.length == 1 ? "todo" : "todos"}?
           </p>
+        </Modal>
+        <Modal
+          isOpen={isFavoriteModalOpen}
+          title="Favorite Todos"
+          onConfirm={() => setIsFavoriteModalOpen(false)}
+          onCancel={() => setIsFavoriteModalOpen(false)}
+        >
+          {favoriteTodos.length === 0 ? (
+            <p>No favorites yet ❤️</p>
+          ) : (
+            favoriteTodos.map((todo, index) => {
+              return (
+                <div key={todo.id} className="fav-item">
+                  {index + 1}. {todo.title}
+                </div>
+              );
+            })
+          )}
         </Modal>
         <Pagination
           currentPage={currentPage}
