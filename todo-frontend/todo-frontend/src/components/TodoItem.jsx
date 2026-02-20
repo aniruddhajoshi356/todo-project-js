@@ -1,3 +1,5 @@
+import TagChip from "./TagChip";
+
 function TodoItem({
   todo,
   key,
@@ -7,6 +9,8 @@ function TodoItem({
   toggleSelect,
   handleStatusChange,
   handleToggleFavorite,
+  handleRemoveTag,
+  tagArray,
 }) {
   const statusColor =
     todo.status === "completed"
@@ -24,12 +28,14 @@ function TodoItem({
   return (
     <div className="flex items-center justify-between border-b py-4">
       <div className="flex items-center gap-4">
+
         <input
           type="checkbox"
           className="w-5 h-5 rounded-md"
           checked={selectedIds.includes(todo.id)}
           onChange={() => toggleSelect(todo.id)}
         />
+        
         <span className="text-lg ml-5 text-2xl font-medium text-black">
           {todo.title}
         </span>
@@ -39,6 +45,17 @@ function TodoItem({
             return desc.length > 5 ? desc.slice(0, 5) + "..." : desc;
           })()}
         </p>
+        {/* //{console.log(todo.Tags)} */}
+        {todo.Tags?.map((tag) => (
+          <TagChip
+            key={tag.id}
+            tag={tag}
+            onRemove={(tagId) => handleRemoveTag(todo.id, tag.id)}
+          />
+          // {console.log(todo.id, tag.id)}
+        )
+        )}
+        
       </div>
       <div className="flex items-center gap-3">
         <select

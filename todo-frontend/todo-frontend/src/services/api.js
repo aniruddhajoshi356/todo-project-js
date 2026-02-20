@@ -1,5 +1,5 @@
-//const BASE_URL = "http://localhost:5000/api";
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = "http://localhost:5000/api";
+//const BASE_URL = import.meta.env.VITE_API_URL;
 
 
 export const fetchTodos = async (page = 1, search = "", filter = "ALL") => {
@@ -33,12 +33,12 @@ export const getCategoriesAPI = async () => {
     const data = await res.json();
     return data.data;
 };
-export const createTodoAPI = async (title, description, categoryId) => {
+export const createTodoAPI = async (title, description, categoryId, tags) => {
     const token = localStorage.getItem("token");
     const res = await fetch(`${BASE_URL}/todos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" ,"Authorization": `Bearer ${token}`},
-        body: JSON.stringify({ title, description, categoryId }),
+        body: JSON.stringify({ title, description, categoryId, tags}),
     });
 
     const data = await res.json();
@@ -87,6 +87,17 @@ export const deleteTodoAPI = async (id) => {
         headers: { "Content-Type": "application/json" ,"Authorization": `Bearer ${token}`},
     });
 
+};
+
+export const removeTagAPI = async (id, tag_id) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE_URL}/todos/tag/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" ,"Authorization": `Bearer ${token}`},
+        body: JSON.stringify({ tag_id }),
+    });
+    const data = await res.json();
+    return data.success;
 };
 
 export const bulkDeleteAPI = async (ids) => {

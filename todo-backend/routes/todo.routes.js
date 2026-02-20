@@ -9,6 +9,7 @@ router.post("/category", authMiddleware, todoController.createCategory);
 router.get("/", authMiddleware, todoController.getAllTodos);
 router.get("/category", authMiddleware, todoController.getCategories);
 router.get("/favorite", authMiddleware, todoController.getFavoriteTodos);
+router.delete("/tag/:id", authMiddleware, todoController.removeTagFromTodo);
 router.get("/:id", authMiddleware, todoController.getTodoById);
 router.patch("/:id/status", authMiddleware, todoController.updateTodoStatus);
 router.put("/:id/favorite", authMiddleware, todoController.updateTodoFavorite);

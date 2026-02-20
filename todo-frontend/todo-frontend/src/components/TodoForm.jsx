@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import { createCategoryAPI, getCategoriesAPI } from "../services/api";
 import Modal from "./Modal";
 
-function TodoForm({ handleAddTodo, setToast }) {
+function TodoForm({ handleAddTodo, setToast, setTagArray }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [newCategoryName, setNewCategoryName] = useState("");
-
   const [categoriesList, setCategoriesList] = useState([]);
+  const [tags, setTags] = useState("");
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -54,11 +54,26 @@ function TodoForm({ handleAddTodo, setToast }) {
       setToast({ message: "Please select a category", type: "error" });
       return;
     }
-    handleAddTodo(title, description, selectedCategoryId);
+    if (!tags || tags.trim() === "") {
+      setToast({ message: "Please enter tags", type: "error" });
+      return;
+    }
+    const tagArr = tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag !== "");
+    if (tagArr.length > 3) {
+      setToast({ message: "Maximum 3 tags allowed", type: "error" });
+      return;
+    }
+    setTagArray(tagArr);
+
+    handleAddTodo(title, description, selectedCategoryId, tagArr);
     setTitle("");
     setDescription("");
     setNewCategoryName("");
     setSelectedCategoryId("");
+    setTags("");
   };
 
   return (
@@ -107,6 +122,16 @@ function TodoForm({ handleAddTodo, setToast }) {
           placeholder="Enter task description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          className="flex-1 text-black border-black  border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+      </div>
+      <div className="flex items-center gap-4">
+        <label className="w-24 font-bold text-gray-600">Tags</label>
+        <input
+          type="text"
+          placeholder="Enter tags separated by comma (max 3)"
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
           className="flex-1 text-black border-black  border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
       </div>

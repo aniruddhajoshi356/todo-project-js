@@ -1,5 +1,4 @@
-const { Todo } = require("../models");
-const { Category } = require("../models");
+const { Todo, Category, Tag } = require("../models");
 const { Op } = require("sequelize");
 
 const ALLOWED_STATUS = ["in_progress", "on-hold", "completed"];
@@ -7,27 +6,26 @@ const ALLOWED_STATUS = ["in_progress", "on-hold", "completed"];
 /**
  * Create Todo
  */
+const { sequelize } = require("../models");
 exports.createTodo = async (req, res) => {
   try {
-    const { title, description, status, categoryId } = req.body;
+    const { title, description, status, categoryId, tags } = req.body;
 
-    // Title validation
-    if (!title || !title.trim()) {
+    // 🔹 Basic Validation
+    if (!title?.trim()) {
       return res.status(400).json({
         success: false,
         message: "Title is required",
       });
     }
 
-    // Description validation
-    if (!description || !description.trim()) {
+    if (!description?.trim()) {
       return res.status(400).json({
         success: false,
         message: "Description is required",
       });
     }
 
-    // Status validation (optional but controlled)
     if (status && !ALLOWED_STATUS.includes(status)) {
       return res.status(400).json({
         success: false,
@@ -35,19 +33,61 @@ exports.createTodo = async (req, res) => {
       });
     }
 
+    let normalizedTags = [];
+
+    if (Array.isArray(tags)) {
+      normalizedTags = [
+        ...new Set(
+          tags
+            .map(tag => tag?.trim().toLowerCase())
+            .filter(tag => tag)
+        )
+      ];
+
+      if (normalizedTags.length > 3) {
+        return res.status(400).json({
+          success: false,
+          message: "Maximum 3 tags allowed per todo",
+        });
+      }
+    }
     const newTodo = await Todo.create({
-      title: title,
-      description: description,
+      title: title.trim(),
+      description: description.trim(),
       status: status || "in_progress",
-      categoryId: categoryId,
+      categoryId,
       userId: req.user.id,
+    });
+
+    if (normalizedTags.length > 0) {
+      const tagInstances = [];
+
+      for (const tagName of normalizedTags) {
+        const [tag] = await Tag.findOrCreate({
+          where: { tagname: tagName },
+        });
+
+        tagInstances.push(tag);
+      }
+
+      await newTodo.addTags(tagInstances);
+    }
+
+    const todoWithTags = await Todo.findByPk(newTodo.id, {
+      include: {
+        model: Tag,
+        through: { attributes: [] },
+      },
     });
 
     return res.status(201).json({
       success: true,
-      data: newTodo,
+      data: todoWithTags,
     });
+
   } catch (error) {
+    console.error(error);
+
     return res.status(500).json({
       success: false,
       message: "Server Error",
@@ -55,7 +95,6 @@ exports.createTodo = async (req, res) => {
     });
   }
 };
-
 /**
  * Create Category
  */
@@ -63,7 +102,6 @@ exports.createCategory = async (req, res) => {
   try {
     const { name } = req.body;
 
-    // Name validation
     if (!name || !name.trim()) {
       return res.status(400).json({
         success: false,
@@ -130,6 +168,15 @@ exports.getAllTodos = async (req, res) => {
       limit,
       offset,
       order: [["createdAt", "DESC"]],
+      include: [
+        {
+          model: Category,
+        },
+        {
+          model: Tag,
+          through: { attributes: [] },
+        },
+      ],
     });
     return res.status(200).json({
       totalItems: count,
@@ -159,6 +206,15 @@ exports.getTodoById = async (req, res) => {
         id,
         userId: req.user.id,
       },
+      include: [
+        {
+          model: Category,
+        },
+        {
+          model: Tag,
+          through: { attributes: [] },
+        },
+      ],
     });
 
     if (!todo) {
@@ -187,7 +243,12 @@ exports.getTodoById = async (req, res) => {
  */
 exports.getCategories = async (req, res) => {
   try {
-    const categories = await Category.findAll();
+    console.log("Getting categories for user:", req.user.id);
+    const categories = await Category.findAll({
+      where: {
+        userId: req.user.id,
+      },
+    });
     res.status(200).json({
       success: true,
       data: categories,
@@ -367,6 +428,51 @@ exports.deleteTodo = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Todo deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+/**
+ * remove tag from todo
+ */
+exports.removeTagFromTodo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { tag_id } = req.body;
+
+    const todo = await Todo.findOne({
+      where: {
+        id,
+        userId: req.user.id,
+      },
+    });
+
+    if (!todo) {
+      return res.status(404).json({
+        success: false,
+        message: "Todo not found",
+      });
+    }
+    const tag = await Tag.findByPk(tag_id);
+
+    if (!tag) {
+      return res.status(404).json({
+        success: false,
+        message: "Tag not found",
+      });
+    }
+
+    await todo.removeTag(tag);
+
+    return res.status(200).json({
+      success: true,
+      message: "Tag removed successfully",
     });
   } catch (error) {
     console.error(error);
