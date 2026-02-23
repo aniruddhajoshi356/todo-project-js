@@ -12,6 +12,7 @@ router.get("/favorite", authMiddleware, todoController.getFavoriteTodos);
 router.delete("/tag/:id", authMiddleware, todoController.removeTagFromTodo);
 router.get("/:id", authMiddleware, todoController.getTodoById);
 router.patch("/:id/status", authMiddleware, todoController.updateTodoStatus);
+router.patch("/:id/rating", authMiddleware, todoController.updateTodoRating);
 router.put("/:id/favorite", authMiddleware, todoController.updateTodoFavorite);
 router.patch("/:id", authMiddleware, todoController.updateTodo);
 router.delete("/bulk", authMiddleware, todoController.bulkDeleteTodos);

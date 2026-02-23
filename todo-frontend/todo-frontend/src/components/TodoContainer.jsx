@@ -14,6 +14,7 @@ import {
   updateFavoriteAPI,
   getFavoriteTodosAPI,
   removeTagAPI,
+  updateRatingAPI,
 } from "../services/api";
 
 import { useCallback, useEffect, useState } from "react";
@@ -64,10 +65,11 @@ const TodoContainer = () => {
     const data = await fetchTodos(currentPage, debouncedSearch, filter);
     setTodos(data.todos);
     setTotalPages(data.totalPages);
-    if (currentPage > data.totalPages) {
+    
+    // Fix pagination edge cases
+    if (currentPage > data.totalPages && data.totalPages > 0) {
       setCurrentPage(data.totalPages);
-    }
-    if (currentPage == 0 && data.totalPages > 0) {
+    } else if (currentPage === 0 && data.totalPages > 0) {
       setCurrentPage(1);
     }
   }, [currentPage, debouncedSearch, filter]);
@@ -106,13 +108,23 @@ const TodoContainer = () => {
     await createTodoAPI(title, description, categoryId, tags);
     setCurrentPage(1);
     showToast("Todo created successfully", "success");
-    await loadTodos();
+    loadTodos();
   };
 
   const handleStatusChange = async (id, newStatus) => {
     await updateStatusAPI(id, newStatus);
     showToast(`Todo status updated successfully as ${newStatus}`, "success");
     await loadTodos();
+  };
+
+  const handleRatingChange = async (id, rating) => {
+    try {
+      await updateRatingAPI(id, rating);
+      showToast(`Todo rating updated to ${rating.toFixed(1)}`, "success");
+      await loadTodos();
+    } catch (error) {
+      showToast("Failed to update rating", "error");
+    }
   };
 
   const openDeleteModal = (todo) => {
@@ -253,6 +265,7 @@ const TodoContainer = () => {
         handleSelectAll={handleSelectAll}
         handleStatusChange={handleStatusChange}
         handleToggleFavorite={handleToggleFavorite}
+        handleRatingChange={handleRatingChange}
         handleRemoveTag={handleRemoveTag}
         tagArray={tagArray}
       />

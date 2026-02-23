@@ -62,8 +62,8 @@ function TodoForm({ handleAddTodo, setToast, setTagArray }) {
       .split(",")
       .map((tag) => tag.trim())
       .filter((tag) => tag !== "");
-    if (tagArr.length > 3) {
-      setToast({ message: "Maximum 3 tags allowed", type: "error" });
+    if (tagArr.length > 2) {
+      setToast({ message: "Maximum 2 tags allowed", type: "error" });
       return;
     }
     setTagArray(tagArr);
@@ -129,7 +129,7 @@ function TodoForm({ handleAddTodo, setToast, setTagArray }) {
         <label className="w-24 font-bold text-gray-600">Tags</label>
         <input
           type="text"
-          placeholder="Enter tags separated by comma (max 3)"
+          placeholder="Enter tags separated by comma (max 2)"
           value={tags}
           onChange={(e) => setTags(e.target.value)}
           className="flex-1 text-black border-black  border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"

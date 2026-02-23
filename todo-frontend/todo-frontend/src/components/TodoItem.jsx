@@ -1,4 +1,5 @@
 import TagChip from "./TagChip";
+import StarRating from "./StarRating";
 
 function TodoItem({
   todo,
@@ -9,6 +10,7 @@ function TodoItem({
   toggleSelect,
   handleStatusChange,
   handleToggleFavorite,
+  handleRatingChange,
   handleRemoveTag,
   tagArray,
 }) {
@@ -56,6 +58,11 @@ function TodoItem({
         )
         )}
         
+        <StarRating 
+          rating={todo.rating || 0} 
+          onRatingChange={(rating) => handleRatingChange(todo.id, rating)}
+          size="text-lg"
+        />
       </div>
       <div className="flex items-center gap-3">
         <select

@@ -80,6 +80,22 @@ export const updateTodoAPI = async (id, title) => {
     });
 };
 
+export const updateRatingAPI = async (id, rating) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE_URL}/todos/${id}/rating`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ rating }),
+    });
+    
+    if (!res.ok) {
+        throw new Error(`Failed to update rating: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    return data.data;
+};
+
 export const deleteTodoAPI = async (id) => {
     const token = localStorage.getItem("token");
     await fetch(`${BASE_URL}/todos/${id}`, {
@@ -136,4 +152,3 @@ export const loginUser = async (userData) => {
 
   return res.json();
 };
-

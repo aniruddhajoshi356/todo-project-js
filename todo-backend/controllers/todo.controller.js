@@ -44,10 +44,10 @@ exports.createTodo = async (req, res) => {
         )
       ];
 
-      if (normalizedTags.length > 3) {
+      if (normalizedTags.length > 2) {
         return res.status(400).json({
           success: false,
-          message: "Maximum 3 tags allowed per todo",
+          message: "Maximum 2 tags allowed per todo",
         });
       }
     }
@@ -482,6 +482,57 @@ exports.removeTagFromTodo = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+/**
+ * Update Todo Rating
+ */
+exports.updateTodoRating = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { rating } = req.body;
+
+        // Rating validation
+        if (typeof rating !== 'number' || rating < 0 || rating > 5) {
+            return res.status(400).json({
+                success: false,
+                message: "Rating must be a number between 0 and 5",
+            });
+        }
+
+        // Check if rating is in 0.5 increments
+        if ((rating * 2) % 1 !== 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Rating must be in 0.5 increments (0, 0.5, 1, 1.5, etc.)",
+            });
+        }
+
+        const todo = await Todo.findByPk(id);
+
+        if (!todo) {
+            return res.status(404).json({
+                success: false,
+                message: "Todo not found",
+            });
+        }
+
+        todo.rating = rating;
+        await todo.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Rating updated successfully",
+            data: todo,
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: error.message,
+        });
+    }
 };
 
 /**

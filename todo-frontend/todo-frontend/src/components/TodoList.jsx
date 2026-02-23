@@ -8,6 +8,7 @@ function TodoList({
     selectedIds,
     handleStatusChange,
     handleToggleFavorite,
+    handleRatingChange,
     handleRemoveTag,
     tagArray,
 }) {
@@ -28,6 +29,7 @@ function TodoList({
                         selectedIds={selectedIds}
                         handleStatusChange={handleStatusChange}
                         handleToggleFavorite={handleToggleFavorite}
+                        handleRatingChange={handleRatingChange}
                         handleRemoveTag={handleRemoveTag}
                         tagArray={tagArray}
                     />
