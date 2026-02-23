@@ -34,6 +34,22 @@ const Todo = sequelize.define(
         allowNull: false,
         defaultValue: "in_progress",
         },
+
+        rating: {
+        type: DataTypes.DECIMAL(3, 1),
+        allowNull: false,
+        defaultValue: 0.0,
+        validate: {
+            min: {
+                args: [0.0],
+                msg: "Rating cannot be less than 0",
+            },
+            max: {
+                args: [5.0],
+                msg: "Rating cannot be more than 5",
+            },
+        },
+        },
         userId: {
         type: DataTypes.INTEGER,
         allowNull: false,

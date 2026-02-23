@@ -13,6 +13,8 @@ import {
   bulkDeleteAPI,
   updateFavoriteAPI,
   getFavoriteTodosAPI,
+  removeTagAPI,
+  updateRatingAPI,
 } from "../services/api";
 
 import { useCallback, useEffect, useState } from "react";
@@ -54,7 +56,7 @@ const TodoContainer = () => {
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [isFavoriteModalOpen, setIsFavoriteModalOpen] = useState(false);
   const [favoriteTodos, setFavoriteTodos] = useState([]);
-  
+  const [tagArray, setTagArray] = useState([]);
   const [toast, setToast] = useState({
     message: "",
     type: "",
@@ -63,10 +65,11 @@ const TodoContainer = () => {
     const data = await fetchTodos(currentPage, debouncedSearch, filter);
     setTodos(data.todos);
     setTotalPages(data.totalPages);
-    if (currentPage > data.totalPages) {
+    
+    // Fix pagination edge cases
+    if (currentPage > data.totalPages && data.totalPages > 0) {
       setCurrentPage(data.totalPages);
-    }
-    if (currentPage == 0 && data.totalPages > 0) {
+    } else if (currentPage === 0 && data.totalPages > 0) {
       setCurrentPage(1);
     }
   }, [currentPage, debouncedSearch, filter]);
@@ -82,7 +85,7 @@ const TodoContainer = () => {
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
-  
+
   const handleOpenFavoriteModal = async () => {
     try {
       const data = await getFavoriteTodosAPI();
@@ -101,17 +104,27 @@ const TodoContainer = () => {
     }, 3000);
   };
 
-  const handleAddTodo = async (title, description, categoryId) => {
-    await createTodoAPI(title, description, categoryId);
+  const handleAddTodo = async (title, description, categoryId, tags) => {
+    await createTodoAPI(title, description, categoryId, tags);
     setCurrentPage(1);
     showToast("Todo created successfully", "success");
-    await loadTodos();
+    loadTodos();
   };
 
   const handleStatusChange = async (id, newStatus) => {
     await updateStatusAPI(id, newStatus);
     showToast(`Todo status updated successfully as ${newStatus}`, "success");
     await loadTodos();
+  };
+
+  const handleRatingChange = async (id, rating) => {
+    try {
+      await updateRatingAPI(id, rating);
+      showToast(`Todo rating updated to ${rating.toFixed(1)}`, "success");
+      await loadTodos();
+    } catch (error) {
+      showToast("Failed to update rating", "error");
+    }
   };
 
   const openDeleteModal = (todo) => {
@@ -178,6 +191,14 @@ const TodoContainer = () => {
       setSelectedIds(visibleIds);
     }
   };
+  const handleRemoveTag = async (id, tagId) => {
+    console.log(id, tagId);
+    const success = await removeTagAPI(id, tagId);
+    if (success) {
+      showToast("Tag removed successfully", "success");
+    }
+    await loadTodos();
+  };
   const handleToggleFavorite = async (id, is_favorite) => {
     await updateFavoriteAPI(id, is_favorite);
     is_favorite
@@ -191,9 +212,9 @@ const TodoContainer = () => {
   };
 
   return (
-    <div className="w-250 h-250 bg-white shadow-lg rounded-3xl p-8 max-h-[80vh]">
+    <div className="w-260 h-260 bg-white shadow-lg rounded-3xl p-8 ">
       {/* Header */}
-      <div className="text-center mb-8 mt-8">
+      <div className="text-center mb-8 mt-">
         <div className="flex items-center justify-between bg-blue-100 rounded-full p-2">
           <button className="bg-blue-100" onClick={handleOpenFavoriteModal}>
             <i className="fa-solid fa-bookmark"></i>
@@ -218,9 +239,12 @@ const TodoContainer = () => {
         type={toast.type}
         onClose={() => setToast({ message: "", type: "" })}
       />
+      <TodoForm
+        handleAddTodo={handleAddTodo}
+        setToast={setToast}
+        setTagArray={setTagArray}
+      />
 
-      <TodoForm handleAddTodo={handleAddTodo} setToast={setToast}/>
-      
       <FilterBar
         filter={filter}
         setFilter={setFilter}
@@ -241,6 +265,9 @@ const TodoContainer = () => {
         handleSelectAll={handleSelectAll}
         handleStatusChange={handleStatusChange}
         handleToggleFavorite={handleToggleFavorite}
+        handleRatingChange={handleRatingChange}
+        handleRemoveTag={handleRemoveTag}
+        tagArray={tagArray}
       />
 
       <Modal
@@ -283,40 +310,6 @@ const TodoContainer = () => {
         >
           Delete Selected
         </button>
-
-        <Modal
-          isOpen={isBulkModalOpen}
-          title="Delete Selected Todos"
-          onConfirm={confirmBulkDelete}
-          onCancel={() => {
-            setSelectedIds([]);
-            setIsBulkModalOpen(false);
-          }}
-        >
-          <p className="text-black">
-            Are you sure you want to delete{" "}
-            <strong>{selectedIds.length}</strong> selected{" "}
-            {selectedIds.length == 1 ? "todo" : "todos"}?
-          </p>
-        </Modal>
-        <Modal
-          isOpen={isFavoriteModalOpen}
-          title="Favorite Todos"
-          onConfirm={() => setIsFavoriteModalOpen(false)}
-          onCancel={() => setIsFavoriteModalOpen(false)}
-        >
-          {favoriteTodos.length === 0 ? (
-            <p>No favorites yet ❤️</p>
-          ) : (
-            favoriteTodos.map((todo, index) => {
-              return (
-                <div key={todo.id} className="fav-item">
-                  {index + 1}. {todo.title}
-                </div>
-              );
-            })
-          )}
-        </Modal>
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
@@ -324,6 +317,38 @@ const TodoContainer = () => {
           setSelectedIds={setSelectedIds}
         />
       </div>
+      <Modal
+        isOpen={isBulkModalOpen}
+        title="Delete Selected Todos"
+        onConfirm={confirmBulkDelete}
+        onCancel={() => {
+          setSelectedIds([]);
+          setIsBulkModalOpen(false);
+        }}
+      >
+        <p className="text-black">
+          Are you sure you want to delete <strong>{selectedIds.length}</strong>{" "}
+          selected {selectedIds.length == 1 ? "todo" : "todos"}?
+        </p>
+      </Modal>
+      <Modal
+        isOpen={isFavoriteModalOpen}
+        title="Favorite Todos"
+        onConfirm={() => setIsFavoriteModalOpen(false)}
+        onCancel={() => setIsFavoriteModalOpen(false)}
+      >
+        {favoriteTodos.length === 0 ? (
+          <p>No favorites yet ❤️</p>
+        ) : (
+          favoriteTodos.map((todo, index) => {
+            return (
+              <div key={todo.id} className="fav-item">
+                {index + 1}. {todo.title}
+              </div>
+            );
+          })
+        )}
+      </Modal>
     </div>
   );
 };

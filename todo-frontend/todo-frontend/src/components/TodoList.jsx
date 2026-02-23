@@ -7,10 +7,13 @@ function TodoList({
     toggleSelect,
     selectedIds,
     handleStatusChange,
-    handleToggleFavorite
+    handleToggleFavorite,
+    handleRatingChange,
+    handleRemoveTag,
+    tagArray,
 }) {
     return (
-        <div className="h-100 overflow-y-auto scroll-right">
+        <div className="h-110 overflow-y-auto scroll-right">
             {todos.length === 0 ? (
                 <p className="text-center text-gray-500 mt-4">
                     No todos found
@@ -26,6 +29,9 @@ function TodoList({
                         selectedIds={selectedIds}
                         handleStatusChange={handleStatusChange}
                         handleToggleFavorite={handleToggleFavorite}
+                        handleRatingChange={handleRatingChange}
+                        handleRemoveTag={handleRemoveTag}
+                        tagArray={tagArray}
                     />
                 ))
             )}

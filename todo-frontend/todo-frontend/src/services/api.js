@@ -33,12 +33,12 @@ export const getCategoriesAPI = async () => {
     const data = await res.json();
     return data.data;
 };
-export const createTodoAPI = async (title, description, categoryId) => {
+export const createTodoAPI = async (title, description, categoryId, tags) => {
     const token = localStorage.getItem("token");
     const res = await fetch(`${BASE_URL}/todos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" ,"Authorization": `Bearer ${token}`},
-        body: JSON.stringify({ title, description, categoryId }),
+        body: JSON.stringify({ title, description, categoryId, tags}),
     });
 
     const data = await res.json();
@@ -80,6 +80,22 @@ export const updateTodoAPI = async (id, title) => {
     });
 };
 
+export const updateRatingAPI = async (id, rating) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE_URL}/todos/${id}/rating`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ rating }),
+    });
+    
+    if (!res.ok) {
+        throw new Error(`Failed to update rating: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    return data.data;
+};
+
 export const deleteTodoAPI = async (id) => {
     const token = localStorage.getItem("token");
     await fetch(`${BASE_URL}/todos/${id}`, {
@@ -87,6 +103,17 @@ export const deleteTodoAPI = async (id) => {
         headers: { "Content-Type": "application/json" ,"Authorization": `Bearer ${token}`},
     });
 
+};
+
+export const removeTagAPI = async (id, tag_id) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE_URL}/todos/tag/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" ,"Authorization": `Bearer ${token}`},
+        body: JSON.stringify({ tag_id }),
+    });
+    const data = await res.json();
+    return data.success;
 };
 
 export const bulkDeleteAPI = async (ids) => {
@@ -125,4 +152,3 @@ export const loginUser = async (userData) => {
 
   return res.json();
 };
-
