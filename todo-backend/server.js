@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const app = require("./app");
-const {sequelize} = require("./models");
+const { sequelize, User, Category, Tag, Todo, TodoTag } = require("./models");
 
 const PORT = process.env.PORT || 5000;
 
@@ -11,7 +11,13 @@ const startServer = async () => {
     console.log("Database connected");
 
     await sequelize.createSchema("js_todo", { ifNotExists: true });
-    await sequelize.sync({ alter: true });
+
+    // Sync in dependency order — parents before children
+    await User.sync({ alter: true });
+    await Category.sync({ alter: true });
+    await Tag.sync({ alter: true });
+    await Todo.sync({ alter: true });    // depends on User + Category
+    await TodoTag.sync({ alter: true }); // depends on Todo + Tag
     console.log("Tables synced");
 
     app.listen(PORT, () => {

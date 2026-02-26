@@ -54,7 +54,7 @@ const Todo = sequelize.define(
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: "users",
+            model: { tableName: "users", schema: "js_todo" },
             key: "id"
         },
         },
@@ -62,7 +62,7 @@ const Todo = sequelize.define(
         type: DataTypes.INTEGER,
         allowNull: true,
         references: {
-            model: "categories",
+            model: { tableName: "categories", schema: "js_todo" },
             key: "id"
         },
         },
