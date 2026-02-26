@@ -10,6 +10,7 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log("Database connected");
 
+    await sequelize.createSchema("js_todo", { ifNotExists: true });
     await sequelize.sync({ alter: true });
     console.log("Tables synced");
 
