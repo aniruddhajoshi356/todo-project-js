@@ -19,7 +19,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, setSelectedIds }) =
                 onPageChange(currentPage + 1)
                 setSelectedIds([])
             }}
-            disabled={currentPage === totalPages}
+            disabled={currentPage >= totalPages}
             className="px-3 py-1 border rounded disabled:opacity-50"
         >
             Next

@@ -32,10 +32,10 @@ function TodoItem({
           onChange={() => toggleSelect(todo.id)}
         />
         
-        <span className="text-lg ml-5 text-2xl font-medium text-black">
+        <span className="ml-5 text-2xl font-medium text-black">
           {todo.title}
         </span>
-        <p className="ml-5 text-lg text-2xl font-medium text-gray-500">
+        <p className="ml-5 text-xl font-medium text-gray-500">
           {(() => {
             const desc = todo.description.trim();
             return desc.length > 5 ? desc.slice(0, 5) + "..." : desc;

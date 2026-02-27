@@ -65,7 +65,6 @@ const TodoContainer = () => {
     const data = await fetchTodos(currentPage, debouncedSearch, filter);
     setTodos(data.todos);
     setTotalPages(data.totalPages);
-    
 
     if (currentPage > data.totalPages && data.totalPages > 0) {
       setCurrentPage(data.totalPages);
@@ -106,9 +105,12 @@ const TodoContainer = () => {
 
   const handleAddTodo = async (title, description, categoryId, tags) => {
     await createTodoAPI(title, description, categoryId, tags);
-    setCurrentPage(1);
     showToast("Todo created successfully", "success");
-    loadTodos();
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      loadTodos();
+    }
   };
 
   const handleStatusChange = async (id, newStatus) => {
@@ -137,11 +139,14 @@ const TodoContainer = () => {
 
     await deleteTodoAPI(todoToDelete.id);
     showToast("Todo deleted successfully", "success");
-
-    await loadTodos();
-
     setIsModalOpen(false);
     setTodoToDelete(null);
+
+    if (todos.length === 1 && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    } else {
+      await loadTodos();
+    }
   };
   const openBulkDeleteModal = () => {
     if (selectedIds.length === 0) return;
@@ -150,10 +155,15 @@ const TodoContainer = () => {
   const confirmBulkDelete = async () => {
     await bulkDeleteAPI(selectedIds);
     showToast("Todos deleted successfully", "success");
-    await loadTodos();
-
     setSelectedIds([]);
     setIsBulkModalOpen(false);
+
+    const deletingAllOnPage = todos.every((t) => selectedIds.includes(t.id));
+    if (deletingAllOnPage && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    } else {
+      await loadTodos();
+    }
   };
 
   const openEditModal = (todo) => {

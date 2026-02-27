@@ -144,9 +144,6 @@ exports.getAllTodos = async (req, res) => {
     const limit = parseInt(req.query.limit) || 5;
     const search = req.query.search || "";
     const filter = req.query.filter || "ALL";
-
-    const offset = (page - 1) * limit;
-
     const filters = { userId: req.user.id };
     if (filter !== "ALL") {
       filters.status = filter;
@@ -156,8 +153,14 @@ exports.getAllTodos = async (req, res) => {
         [Op.iLike]: `%${search}%`,
       };
     }
+    const count = await Todo.count({ where: filters });
+    
+    const totalPages = Math.ceil(count / limit) || 1;
+    
+    const validPage = page > totalPages ? totalPages : page;
+    const offset = (validPage - 1) * limit;
 
-    const { count, rows } = await Todo.findAndCountAll({
+    const rows = await Todo.findAll({
       where: filters,
       limit,
       offset,
@@ -174,8 +177,8 @@ exports.getAllTodos = async (req, res) => {
     });
     return res.status(200).json({
       totalItems: count,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page,
+      totalPages: totalPages,
+      currentPage: validPage,
       todos: rows,
     });
   } catch (error) {
@@ -233,7 +236,6 @@ exports.getTodoById = async (req, res) => {
 
 exports.getCategories = async (req, res) => {
   try {
-    console.log("Getting categories for user:", req.user.id);
     const categories = await Category.findAll({
       where: {
         userId: req.user.id,
