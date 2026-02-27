@@ -27,15 +27,14 @@ function TodoForm({ handleAddTodo, setToast, setTagArray }) {
     try {
       e.preventDefault();
       const newCategory = await createCategoryAPI(newCategoryName);
-      //console.log("New category created:", newCategory.name);
-      //console.log("New category id:", newCategory.id);
+
       setNewCategoryName("");
       setToast({ message: "Category created successfully", type: "success" });
       setCategoriesList((prev) => [...prev, newCategory]);
       setSelectedCategoryId(newCategory.id);
       setIsNewCategoryModalOpen(false);
     } catch (err) {
-      // console.log("Error creating category:", err);
+
       console.error("Failed to create category", err);
       setToast({ message: "Failed to create category", type: "error" });
     }

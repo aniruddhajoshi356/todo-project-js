@@ -12,16 +12,14 @@ const Login = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  //const [password, setPassword] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
-  //   const handlePasswordChange = (e) => {
-  //     setPassword(e.target.value);
-  //   };
+
   const handleTogglePasswordVisibility = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
   };
 
-  // 🔥 If already logged in → redirect
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -45,8 +43,8 @@ const Login = () => {
       const data = await loginUser(form);
 
       if (data.token) {
-        localStorage.setItem("token", data.token); // ✅ store token
-        navigate("/todos"); // ✅ redirect
+        localStorage.setItem("token", data.token);
+        navigate("/todos");
       } else {
         setError(data.message || "Login failed");
       }

@@ -73,7 +73,7 @@ const Todo = sequelize.define(
     },
     {
         tableName: "todos",
-        timestamps: true, // adds createdAt & updatedAt
+        timestamps: true,
     }
 );
 

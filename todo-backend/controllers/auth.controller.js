@@ -6,7 +6,7 @@ exports.register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    // Check if user already exists
+
     const existingUser = await User.findOne({
       where: { email }
     });
@@ -17,17 +17,17 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Hash password
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+
     const newUser = await User.create({
       username,
       email,
       password: hashedPassword
     });
 
-    // Generate JWT token
+
     const token = jwt.sign(
       { id: newUser.id },
       process.env.JWT_SECRET,
@@ -56,7 +56,7 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if user exists
+
     const user = await User.findOne({
       where: { email }
     });
@@ -67,7 +67,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Compare password
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
@@ -76,7 +76,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Generate JWT
+
     const token = jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET,

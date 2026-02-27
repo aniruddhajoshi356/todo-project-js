@@ -20,13 +20,7 @@ function TodoItem({
       : todo.status === "on-hold"
         ? "bg-yellow-100 text-yellow-700"
         : "bg-blue-100 text-blue-700";
-  // const onEditClick = () => {
-  //     const newTitle = prompt("Edit your task:", todo.title);
 
-  //     if (newTitle && newTitle.trim() !== "") {
-  //     handleEdit(todo.id, newTitle.trim());
-  //     }
-  // };
   return (
     <div className="flex items-center justify-between border-b py-4">
       <div className="flex items-center gap-4">
@@ -47,14 +41,13 @@ function TodoItem({
             return desc.length > 5 ? desc.slice(0, 5) + "..." : desc;
           })()}
         </p>
-        {/* //{console.log(todo.Tags)} */}
         {todo.Tags?.map((tag) => (
           <TagChip
             key={tag.id}
             tag={tag}
             onRemove={(tagId) => handleRemoveTag(todo.id, tag.id)}
           />
-          // {console.log(todo.id, tag.id)}
+
         )
         )}
         
@@ -88,7 +81,7 @@ function TodoItem({
           {todo.is_favorite ? "⭐" : "☆"}
         </button>
       </div>
-      {/* {console.log(todo)} */}
+
     </div>
   );
 }

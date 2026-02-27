@@ -1,10 +1,10 @@
-//const BASE_URL = "http://localhost:5000/api";
+
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 
 export const fetchTodos = async (page = 1, search = "", filter = "ALL") => {
     const token = localStorage.getItem("token");
-    //console.log(search, filter)
+
     const res = await fetch(`${BASE_URL}/todos/?page=${page}&limit=5&search=${search}&filter=${filter}`, {
         headers: {
             "Authorization": `Bearer ${token}`,
@@ -125,9 +125,7 @@ export const bulkDeleteAPI = async (ids) => {
     });
 };
 
-//***
-// Auth APIs
-//***
+
 
 export const registerUser = async (userData) => {
   const res = await fetch(`${BASE_URL}/auth/register`, {

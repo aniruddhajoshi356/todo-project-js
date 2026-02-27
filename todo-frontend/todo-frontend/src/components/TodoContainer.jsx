@@ -40,7 +40,7 @@ const DEFAULT_STATE = [
 ];
 
 const TodoContainer = () => {
-  //const [todos, setTodos] = useState(DEFAULT_STATE);
+
   const [todos, setTodos] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [filter, setFilter] = useState("ALL");
@@ -66,7 +66,7 @@ const TodoContainer = () => {
     setTodos(data.todos);
     setTotalPages(data.totalPages);
     
-    // Fix pagination edge cases
+
     if (currentPage > data.totalPages && data.totalPages > 0) {
       setCurrentPage(data.totalPages);
     } else if (currentPage === 0 && data.totalPages > 0) {
@@ -81,7 +81,7 @@ const TodoContainer = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
-    }, 400); // 400ms delay
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
@@ -89,7 +89,7 @@ const TodoContainer = () => {
   const handleOpenFavoriteModal = async () => {
     try {
       const data = await getFavoriteTodosAPI();
-      //console.log("User's favs", data);
+
       setFavoriteTodos(data.data);
       setIsFavoriteModalOpen(true);
     } catch (err) {
@@ -213,7 +213,6 @@ const TodoContainer = () => {
 
   return (
     <div className="w-260 h-260 bg-white shadow-lg rounded-3xl p-8 ">
-      {/* Header */}
       <div className="text-center mb-8 mt-">
         <div className="flex items-center justify-between bg-blue-100 rounded-full p-2">
           <button className="bg-blue-100" onClick={handleOpenFavoriteModal}>
@@ -292,13 +291,6 @@ const TodoContainer = () => {
       </Modal>
 
       <div className="flex justify-between">
-        {/* <button
-          onClick={openBulkDeleteModal}
-          className="rounded-lg text-white bg-red-500 hover:bg-red-600"
-          disabled={selectedIds.length === 0}
-        >
-          Delete All
-        </button> */}
         <button
           onClick={openBulkDeleteModal}
           disabled={selectedIds.length === 0}

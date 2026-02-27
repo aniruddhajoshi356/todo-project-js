@@ -13,16 +13,14 @@ const Signup = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  //const [password, setPassword] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
-  //   const handlePasswordChange = (e) => {
-  //     setPassword(e.target.value);
-  //   };
+
   const handleTogglePasswordVisibility = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
   };
 
-  // 🔥 If already logged in → redirect to todos
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -46,7 +44,7 @@ const Signup = () => {
       const data = await registerUser(form);
 
       if (data.token) {
-        localStorage.setItem("token", data.token); // ✅ Auto login after signup
+        localStorage.setItem("token", data.token);
         navigate("/todos");
       } else {
         setError(data.message || "Signup failed");
@@ -135,7 +133,7 @@ const Signup = () => {
             {loading ? "Creating..." : "Sign Up"}
           </button>
 
-          {/* Already have account */}
+
           <p className="mt-6 text-center text-xl text-gray-600">
             Already have an account?{" "}
             <Link to="/login" className="text-blue-600 hover:underline">

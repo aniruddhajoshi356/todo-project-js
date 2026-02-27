@@ -3,15 +3,13 @@ const { Op } = require("sequelize");
 
 const ALLOWED_STATUS = ["in_progress", "on-hold", "completed"];
 
-/**
- * Create Todo
- */
+
 const { sequelize } = require("../models");
 exports.createTodo = async (req, res) => {
   try {
     const { title, description, status, categoryId, tags } = req.body;
 
-    // 🔹 Basic Validation
+
     if (!title?.trim()) {
       return res.status(400).json({
         success: false,
@@ -95,9 +93,7 @@ exports.createTodo = async (req, res) => {
     });
   }
 };
-/**
- * Create Category
- */
+
 exports.createCategory = async (req, res) => {
   try {
     const { name } = req.body;
@@ -140,12 +136,10 @@ exports.createCategory = async (req, res) => {
   }
 };
 
-/**
- * Get All Todos
- */
+
 exports.getAllTodos = async (req, res) => {
   try {
-    //const todos = await Todo.findAll();
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const search = req.query.search || "";
@@ -194,9 +188,7 @@ exports.getAllTodos = async (req, res) => {
   }
 };
 
-/**
- * Get Todo by ID
- */
+
 exports.getTodoById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -218,7 +210,7 @@ exports.getTodoById = async (req, res) => {
     });
 
     if (!todo) {
-      //console.log("Todo not found");
+
       return res.status(404).json({
         success: false,
         message: "Todo not found",
@@ -238,9 +230,7 @@ exports.getTodoById = async (req, res) => {
     });
   }
 };
-/**
- * Get Categories
- */
+
 exports.getCategories = async (req, res) => {
   try {
     console.log("Getting categories for user:", req.user.id);
@@ -262,9 +252,7 @@ exports.getCategories = async (req, res) => {
     });
   }
 };
-/**
- * Get Favorite Todos
- */
+
 exports.getFavoriteTodos = async (req, res) => {
   try {
     const todos = await Todo.findAll({
@@ -286,9 +274,7 @@ exports.getFavoriteTodos = async (req, res) => {
     });
   }
 };
-/**
- * Update Todo Favorite
- */
+
 exports.updateTodoFavorite = async (req, res) => {
   try {
     const { id } = req.params;
@@ -324,9 +310,7 @@ exports.updateTodoFavorite = async (req, res) => {
     });
   }
 };
-/**
- * Update Todo Status
- */
+
 exports.updateTodoStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -371,9 +355,7 @@ exports.updateTodoStatus = async (req, res) => {
   }
 };
 
-/**
- * Update Todo Title
- */
+
 exports.updateTodo = async (req, res) => {
   try {
     const { id } = req.params;
@@ -402,9 +384,7 @@ exports.updateTodo = async (req, res) => {
   }
 };
 
-/**
- * Delete Todo
- */
+
 exports.deleteTodo = async (req, res) => {
   try {
     const { id } = req.params;
@@ -438,9 +418,7 @@ exports.deleteTodo = async (req, res) => {
     });
   }
 };
-/**
- * remove tag from todo
- */
+
 exports.removeTagFromTodo = async (req, res) => {
   try {
     const { id } = req.params;
@@ -484,15 +462,12 @@ exports.removeTagFromTodo = async (req, res) => {
   }
 };
 
-/**
- * Update Todo Rating
- */
+
 exports.updateTodoRating = async (req, res) => {
     try {
         const { id } = req.params;
         const { rating } = req.body;
 
-        // Rating validation
         if (typeof rating !== 'number' || rating < 0 || rating > 5) {
             return res.status(400).json({
                 success: false,
@@ -500,7 +475,6 @@ exports.updateTodoRating = async (req, res) => {
             });
         }
 
-        // Check if rating is in 0.5 increments
         if ((rating * 2) % 1 !== 0) {
             return res.status(400).json({
                 success: false,
@@ -535,21 +509,16 @@ exports.updateTodoRating = async (req, res) => {
     }
 };
 
-/**
- * Bulk Delete Todos
- */
+
 exports.bulkDeleteTodos = async (req, res) => {
-  //console.log("Request Body: ", req.body)
   try {
     const { ids } = req.body;
-    //console.log("ids", ids);
     if (!Array.isArray(ids) || ids.length === 0) {
       return res.status(400).json({
         success: false,
         message: "No IDs provided",
       });
     }
-    //console.log(ids);
 
     await Todo.destroy({
       where: {
